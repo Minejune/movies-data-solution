@@ -3,7 +3,9 @@ const path = require("path");
 
 const { open } = require("sqlite");
 const sqlite3 = require("sqlite3");
+
 const app = express();
+app.use(express.json());
 
 const dbPath = path.join(__dirname, "moviesData.db");
 
@@ -41,37 +43,37 @@ app.get("/movies/", async (request, response) => {
 //API 2
 app.post("/movies/", async (request, response) => {
   const newMovie = request.body;
-  let { director_id, movie_name, lead_actor } = newMovie;
+  let { directorId, movieName, leadActor } = newMovie;
 
   const addMovie = `
             INSERT INTO
               movie(director_id,movie_name,lead_actor)
             VALUES 
               (
-               ${director_id},
-               '${movie_name}',
-               '${lead_actor}'
+               ${directorId},
+               '${movieName}',
+               '${leadActor}'
                 );
             `;
 
   const newMovieAdded = await db.run(addMovie);
-  const movie_id = newMovieAdded.lastID;
+  const movieId = newMovieAdded.lastID;
   response.send("Movie successfully Added");
 });
 
 //API 3
 app.get("/movies/:movieId/", async (request, response) => {
-  const { movieById } = request.params;
+  const { movieId } = request.params;
 
-  let getMovie = `SELECT * FROM movie WHERE movie_id = ${movieById};`;
+  let getMovie = `SELECT * FROM movie WHERE movie_id = ${movieId};`;
 
   const getMovieById = await db.get(getMovie);
-  const getMovieByIdToObj = (g) => {
+  const getMovieByIdToObj = (obj) => {
     return {
-      movieId: g.movie_id,
-      directorId: g.director_id,
-      movieName: g.movie_name,
-      leadActor: g.lead_actor,
+      movieId: obj.movie_id,
+      directorId: obj.director_id,
+      movieName: obj.movie_name,
+      leadActor: obj.lead_actor,
     };
   };
 
@@ -80,19 +82,19 @@ app.get("/movies/:movieId/", async (request, response) => {
 
 //API 4
 app.put("/movies/:movieId/", async (request, response) => {
-  const { updateMovieId } = request.params;
+  const { movieId } = request.params;
   const updateMovieDetails = request.body;
-  const { director_id, movie_name, lead_actor } = updateMovieDetails;
+  const { directorId, movieName, leadActor } = updateMovieDetails;
 
   let updatingMovieById = `UPDATE
                               movie 
                             SET
-                              director_id = ${director_id},
-                              movie_name = '${movie_name}',
-                              lead_actor = '${lead_actor}'
+                              director_id = ${directorId},
+                              movie_name = '${movieName}',
+                              lead_actor = '${leadActor}'
                             WHERE 
-                              movie_id = ${updateMovieId}
-                            ;`;
+                              movie_id = ${movieId};
+                              `;
 
   await db.run(updatingMovieById);
   response.send("Movie Details Updated");
@@ -100,8 +102,8 @@ app.put("/movies/:movieId/", async (request, response) => {
 
 //API 5
 app.delete("/movies/:movieId/", async (request, response) => {
-  const { delMovieId } = request.params;
-  const deletingMovie = `DELETE FROM movie WHERE movie_id = ${delMovieId};`;
+  const { movieId } = request.params;
+  const deletingMovie = `DELETE FROM movie WHERE movie_id = ${movieId};`;
 
   await db.run(deletingMovie);
   response.send("Movie Removed");
@@ -125,12 +127,12 @@ app.get("/directors/", async (request, response) => {
 
 //API 7
 app.get("/directors/:directorId/movies/", async (request, response) => {
-  const { directorById } = request.params;
+  const { directorId } = request.params;
 
   const getDirMovies = `SELECT movie_name 
                           FROM movie 
                           WHERE 
-                            director_id = ${directorById};`;
+                            director_id = ${directorId};`;
 
   const dirAllMovies = await db.all(getDirMovies);
   const dirMovieToObj = (dirMovie) => {
